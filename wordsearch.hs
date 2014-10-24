@@ -55,9 +55,21 @@ randomGrid n = replicateM n randomLine
 
 --Gets a lowercase letter in the random monad. 
 -- Which is a letter in the range from 'a' to 'z'
+-- We choose the letter with the same distrubution as english by
+-- picking a index uniformally and using this to look up the letter
 randomLetter :: (MonadRandom m) => m Char
-randomLetter = getRandomR ('a','z')
+randomLetter = do index <- getRandomR (0,letterTotalFrequency)
+                  return $ fst . head $ dropWhile (\(char,freq) -> freq < index) freqLookup
+    where freqLookup = zip ['a'..'z'] letterCumilativeFrequency 
 
+--Frequncy of various letters in english
+letterFrequency :: [Double]
+letterFrequency = [8.167, 1.492, 2.782, 4.253, 12.70, 2.228,
+                   2.015, 6.094, 6.966, 0.153, 0.772, 4.025, 2.406, 6.749, 7.507, 1.929,
+                   0.095, 5.987, 6.327, 9.056, 2.758, 0.978, 2.360, 0.150, 1.974, 0.074]
+
+letterCumilativeFrequency = scanl1 (+) letterFrequency
+letterTotalFrequency = sum letterFrequency
 
 --Get the average word count for n by n grids with the given word lists.
 -- Construct a list of 1000 grids and count the number of words to compute the average
